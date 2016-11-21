@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+	<!-- 缓存管理器 -->
+	<bean id="cacheManager" class="org.apache.shiro.cache.ehcache.EhCacheManager">
+		<property name="cacheManagerConfigFile" value="classpath:ehcache.xml"></property>
+	</bean>
+	<!-- 开始配置SecurityManager 1、缓存管理器 2、realm：用来访问安全数据 -->
+	<bean id="securityManager" class="org.apache.shiro.web.mgt.DefaultWebSecurityManager">
+		<property name="cacheManager" ref="cacheManager"></property>
+		<property name="realm" ref="myRealm"></property>
+
+	</bean>
+	<bean id="myRealm" class="com.atguigu.shiro.realm.MyRealm">
+		<property name="credentialsMatcher" >
+			<bean class="org.apache.shiro.authc.credential.HashedCredentialsMatcher">
+				<property name="hashAlgorithmName" value="MD5"></property>
+				<property name="hashIterations" value="1024"></property>
+			</bean>
+		</property>
+	</bean>
+	
+	<!-- shiroFilter采用的是org.apache.shiro.spring.web.ShiroFilterFactoryBean filterChainDefinitions：用来配置资源和权限的关系 
+		① anon：不进行校验 ② authc：进行验证 -->
+
+	<bean id="shiroFilter" class="org.apache.shiro.spring.web.ShiroFilterFactoryBean">
+		<property name="securityManager" ref="securityManager"></property>
+		<property name="loginUrl" value="/login.jsp"></property>
+		<property name="filterChainDefinitions">
+			<value>
+				/logout = logout
+				/login.jsp = anon
+				/doLogin = anon
+				/user.jsp = roles[user]
+				/admin.jsp = roles[admin]
+				/** = user
+			</value>
+		</property>
+	</bean>
+
+</beans>
